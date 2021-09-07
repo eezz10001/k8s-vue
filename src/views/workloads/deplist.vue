@@ -13,6 +13,12 @@
           {{ scope.$index+1 }}
         </template>
       </el-table-column>
+      <el-table-column label="状态" width="100">
+        <template slot-scope="scope">
+          <p v-html="getStatus(scope.row)" />
+          <p> {{ scope.row.Message }}</p>
+        </template>
+      </el-table-column>
       <el-table-column label="名称" width="300">
         <template slot-scope="scope">
           {{ scope.row.Name }}
@@ -25,10 +31,15 @@
       </el-table-column>
       <el-table-column label="镜像" width="150" align="center">
         <template slot-scope="scope">
-          {{ scope.row.Images }}
+          <p>{{ scope.row.Images }}</p>
+          <p> 副本:<span class="green"> {{ scope.row.Replicas[0] }} </span> /<span>{{ scope.row.Replicas[1] }} </span>  / <span class="red">{{ scope.row.Replicas[2] }} </span>  </p>
         </template>
       </el-table-column>
-
+      <el-table-column label="创建时间" width="150" align="center">
+        <template slot-scope="scope">
+          {{ scope.row.CreateTime }}
+        </template>
+      </el-table-column>
     </el-table>
   </div>
 </template>
@@ -63,7 +74,25 @@ export default {
           this.$forceUpdate()
         }
       }
+    },
+    getStatus(row) {
+      if (row.IsComplete) {
+        return "<span class ='green'>Active</span>"
+      }
+      return "<span class ='red'>Waiting</span>"
+    },
+    getMessage(row) {
+      if (!row.IsComplete) {
+        return row.Message
+      }
+      return ''
     }
   }
 }
 </script>
+
+<style>
+  .red{color: #d20000
+  }
+  .green{color:green}
+</style>
