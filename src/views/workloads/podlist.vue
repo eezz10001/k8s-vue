@@ -1,23 +1,38 @@
 <template>
   <div>
+    <div style="margin:30px 0 30px 10px">
+      <p><label>Pod总数:</label>
+        <span>{{ podsNum }}</span>
+        <label>就绪:</label>
+        <span class="green"> {{ podsReadyNum }}</span>
+      </p>
+    </div>
     <el-container v-for="ns in nslist" :key="ns.label">
       <el-header>{{ ns.Name }}</el-header>
+      <el-header />
       <el-main>
         <el-table
           :data="pods[ns.Name]"
           border
           fit
           highlight-current-row
+          :summary-method="getCount"
+          show-summary
         >
           <el-table-column align="center" label="序号" width="95">
             <template slot-scope="scope">
-              {{ scope.$index+1 }}
+              {{ scope.$index + 1 }}
             </template>
           </el-table-column>
-
+          <el-table-column label="状态" width="350">
+            <template slot-scope="scope">
+              <p v-html="getStatus(scope.row.IsReady )" />
+            </template>
+          </el-table-column>
           <el-table-column label="名称" width="350">
             <template slot-scope="scope">
               <p>{{ scope.row.Name }}</p>
+              <p> {{ scope.row.Message }}</p>
             </template>
           </el-table-column>
           <el-table-column label="镜像" width="250" align="center">
@@ -44,13 +59,14 @@ export default {
   data() {
     return {
       nslist: null,
-      pods: {}
+      pods: {},
+      podsNum: 0,
+      podsReadyNum: 0
     }
   },
   created() {
-    getList().then(response => {
-      this.nslist = response.data.data // namespace 列表
-      console.log(this.nslist)
+    getList().then(rsp => {
+      this.nslist = rsp.data // namespace 列表
       this.nslist.forEach(ns => { // 循环获取pods
         this.loadPods(ns.Name)
       })
@@ -59,10 +75,38 @@ export default {
   methods: {
     loadPods(ns) {
       getPodsByNs(ns).then(rsp => {
-        this.pods[ns] = rsp.data.data
-        console.log(this.pods[ns])
+        this.pods[ns] = rsp.data
+        this.pods[ns].forEach(item => {
+          this.podsNum++
+          if (item.IsReady) {
+            this.podsReadyNum++
+          }
+        })
         this.$forceUpdate()
       })
+    },
+    getStatus(IsReady) {
+      if (IsReady) {
+        return '<span class ="green">Active</span>'
+      }
+      return '<span class ="red">Waiting</span>'
+    },
+    getCount(param) {
+      const { data } = param
+      let podAllNum = 0
+      const sum = []
+      sum[0] = 'pods合计'
+      data.forEach(item => {
+        podAllNum++
+      })
+      sum[1] = podAllNum
+      return sum
+    },
+    getMessage(row) {
+      if (!row.IsReady) {
+        return row.Message
+      }
+      return ''
     }
   }
 }
@@ -76,4 +120,13 @@ export default {
   line-height: 60px;
 
 }
+
+.red {
+  color: #d20000
+}
+
+.green {
+  color: green
+}
+
 </style>

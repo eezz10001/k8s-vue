@@ -63,8 +63,8 @@ export default {
     fetchData() {
       this.listLoading = true
       // 通过rest api 获取
-      getList('myweb').then(response => {
-        this.list = response.data
+      getList('myweb').then(rsp => {
+        this.list = rsp.data
         this.listLoading = false
       })
       this.wsClient = NewClient()
